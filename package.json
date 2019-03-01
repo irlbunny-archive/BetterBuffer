@@ -1,5 +1,5 @@
 {
-  "name": "betterbuffer",
+  "name": "@cyuubi/betterbuffer",
   "version": "1.0.0",
   "description": "Node.js buffers which don't suck ass.",
   "main": "index.js",
