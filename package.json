@@ -1,0 +1,21 @@
+{
+  "name": "betterbuffer",
+  "version": "1.0.0",
+  "description": "Node.js buffers which don't suck ass.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cyuubi/BetterBuffer.git"
+  },
+  "author": "Cyuubi",
+  "bugs": {
+    "url": "https://github.com/Cyuubi/BetterBuffer/issues"
+  },
+  "homepage": "https://github.com/Cyuubi/BetterBuffer#readme",
+  "dependencies": {
+    "bigint-buffer": "^1.1.2"
+  }
+}
