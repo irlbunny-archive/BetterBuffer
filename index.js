@@ -32,7 +32,7 @@ BetterBuffer.prototype.setOffset = function(offset) {
 
 BetterBuffer.prototype.writeBuffer = function(buffer) {
 	this.buffer = Buffer.concat([this.buffer, buffer], this.length + buffer.length);
-	this.length += buf.length;
+	this.length += buffer.length;
 };
 
 BetterBuffer.prototype.readDouble = function(val) {
