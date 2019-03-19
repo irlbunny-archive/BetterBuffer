@@ -1,176 +1,204 @@
-const BigIntBuffer = require('bigint-buffer');
+// Int64
+const INT64_MIN = -9223372036854775808n;
+const INT64_MAX = 9223372036854775807n;
 
-function BetterBuffer() {
-	this.buffer = Buffer.alloc(0);
-	this.reset();
-};
+// UInt64
+const UINT64_MIN = 0n;
+const UINT64_MAX = 18446744073709551615n;
 
-BetterBuffer.prototype.reset = function() {
-	if (this.buffer.length != 0)
-		this.buffer = Buffer.alloc(0);
+// https://github.com/no2chem/bigint-buffer/blob/master/src/index.ts
+function toBigInt(buffer) {
+	const reversed = Buffer.from(buffer);
+	reversed.reverse();
 
-	this.offset = 0;
-	this.length = 0;
-};
+	const hex = reversed.toString('hex');
+	if (hex.length != 0) {
+		return BigInt(`0x${hex}`);
+	}
 
-BetterBuffer.prototype.getBuffer = function() {
-	return this.buffer;
-};
+	return BigInt(0);
+}
 
-BetterBuffer.prototype.getLength = function() {
-	return this.length;
-};
+function toBuffer(value, width) {
+	const hex    = value.toString(16);
+	const buffer = Buffer.from(hex.padStart(width * 2, '0').slice(0, width * 2), 'hex');
 
-BetterBuffer.prototype.getOffset = function() {
-	return this.offset;
-};
+	buffer.reverse();
+	return buffer;
+}
 
-BetterBuffer.prototype.setOffset = function(offset) {
-	if (offset > this.length) throw new Error('Offset is above length!');
-	this.offset = offset;
-};
+class BetterBuffer {
+	// NOTE: I'd recommend not tampering with any of the variables used here, as shit could hit the floor quickly.
+	constructor() {
+		this.buffer = Buffer.alloc(0); // Init empty buffer.
+		this.reset();
+	}
 
-BetterBuffer.prototype.writeBuffer = function(buffer) {
-	this.buffer = Buffer.concat([this.buffer, buffer], this.length + buffer.length);
-	this.length += buffer.length;
-};
+	// Func to reset vars.
+	reset() {
+		// Check if buffer length is not 0, if it isn't, clear buffer...
+		if (this.buffer.length != 0) {
+			this.buffer = Buffer.alloc(0);
+		}
 
-BetterBuffer.prototype.readDouble = function(val) {
-	this.offset += 8;
-	return this.buffer.readDoubleLE(this.offset - 8);
-};
+		this.offset = 0;
+		this.length = 0;
+	}
 
-BetterBuffer.prototype.writeDouble = function(val) {
-	writeBuffer = Buffer.alloc(8);
-	writeBuffer.writeDoubleLE(val, 0);
+	/*** Other ***/
+	// Hopefully this actually makes sense. No?
+	readBuffer() {
+		return this.buffer;
+	}
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 8);
-	this.length += 8;
-};
+	writeBuffer(buffer) {
+		this.length += buffer.length;
+		this.buffer = Buffer.concat([this.buffer, buffer], this.length);
+	}
 
-BetterBuffer.prototype.readFloat = function(val) {
-	this.offset += 4;
-	return this.buffer.readFloatLE(this.offset - 4);
-};
+	/*** 8-bit read/write ***/
+	readInt8() {
+		this.offset += 1;
+		return this.buffer.readInt8(this.offset - 1);
+	}
 
-BetterBuffer.prototype.writeFloat = function(val) {
-	writeBuffer = Buffer.alloc(4);
-	writeBuffer.writeFloatLE(val, 0);
+	writeInt8(value) {
+		const writeBuffer = Buffer.alloc(1);
+		writeBuffer.writeInt8(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 4);
-	this.length += 4;
-};
+		this.length += 1;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readInt8 = function() {
-	this.offset += 1;
-	return this.buffer.readInt8(this.offset - 1);
-};
+	readUInt8() {
+		this.offset += 1;
+		return this.buffer.readUInt8(this.offset - 1);
+	}
 
-BetterBuffer.prototype.writeInt8 = function(val) {
-	writeBuffer = Buffer.alloc(1);
-	writeBuffer.writeInt8(val, 0);
+	writeUInt8(value) {
+		const writeBuffer = Buffer.alloc(1);
+		writeBuffer.writeUInt8(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 1);
-	this.length += 1;
-};
+		this.length += 1;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readUInt8 = function() {
-	this.offset += 1;
-	return this.buffer.readUInt8(this.offset - 1);
-};
+	/*** 16-bit read/write ***/
+	readInt16() {
+		this.offset += 2;
+		return this.buffer.readInt16(this.offset - 2);
+	}
 
-BetterBuffer.prototype.writeUInt8 = function(val) {
-	writeBuffer = Buffer.alloc(1);
-	writeBuffer.writeUInt8(val, 0);
+	writeInt16(value) {
+		const writeBuffer = Buffer.alloc(2);
+		writeBuffer.writeInt16(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 1);
-	this.length += 1;
-};
+		this.length += 2;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readInt16 = function() {
-	this.offset += 2;
-	return this.buffer.readInt16LE(this.offset - 2);
-};
+	readUInt16() {
+		this.offset += 2;
+		return this.buffer.readUInt16(this.offset - 2);
+	}
 
-BetterBuffer.prototype.writeInt16 = function(val) {
-	writeBuffer = Buffer.alloc(2);
-	writeBuffer.writeInt16LE(val, 0);
+	writeUInt16(value) {
+		const writeBuffer = Buffer.alloc(2);
+		writeBuffer.writeUInt16(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 2);
-	this.length += 2;
-};
+		this.length += 2;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readUInt16 = function() {
-	this.offset += 2;
-	return this.buffer.readUInt16LE(this.offset - 2);
-};
+	/*** 32-bit read/write ***/
+	readFloat() {
+		this.offset += 4;
+		return this.buffer.readFloatLE(this.offset - 4);
+	}
 
-BetterBuffer.prototype.writeUInt16 = function(val) {
-	writeBuffer = Buffer.alloc(2);
-	writeBuffer.writeUInt16LE(val, 0);
+	writeFloat(value) {
+		const writeBuffer = Buffer.alloc(4);
+		writeBuffer.writeFloatLE(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 2);
-	this.length += 2;
-};
+		this.length += 4;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readInt32 = function() {
-	this.offset += 4;
-	return this.buffer.readInt32LE(this.offset - 4);
-};
+	readInt32() {
+		this.offset += 4;
+		return this.buffer.readInt32(this.offset - 4);
+	}
 
-BetterBuffer.prototype.writeInt32 = function(val) {
-	writeBuffer = Buffer.alloc(4);
-	writeBuffer.writeInt32LE(val, 0);
+	writeInt32(value) {
+		const writeBuffer = Buffer.alloc(4);
+		writeBuffer.writeInt32(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 4);
-	this.length += 4;
-};
+		this.length += 4;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readUInt32 = function() {
-	this.offset += 4;
-	return this.buffer.readUInt32LE(this.offset - 4);
-};
+	readUInt32() {
+		this.offset += 4;
+		return this.buffer.readUInt32(this.offset - 4);
+	}
 
-BetterBuffer.prototype.writeUInt32 = function(val) {
-	writeBuffer = Buffer.alloc(4);
-	writeBuffer.writeUInt32LE(val, 0);
+	writeUInt32(value) {
+		const writeBuffer = Buffer.alloc(4);
+		writeBuffer.writeUInt32(value, 0);
 
-	this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length + 4);
-	this.length += 4;
-};
+		this.length += 4;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.readInt64 = function() {
-	val = this.readUInt64();
+	/*** 64-bit read/write ***/
+	readDouble() {
+		this.offset += 8;
+		return this.buffer.readDoubleLE(this.offset - 8);
+	}
 
-	if (val > 9223372036854775807n)  throw new Error('Value is above signed 64-bit integer limit.');
-	if (val < -9223372036854775808n) throw new Error('Value is below signed 64-bit integer limit.');
+	writeDouble(value) {
+		const writeBuffer = Buffer.alloc(8);
+		writeBuffer.writeDoubleLE(value, 0);
 
-	return val;
-};
+		this.length += 8;
+		this.buffer = Buffer.concat([this.buffer, writeBuffer], this.length);
+	}
 
-BetterBuffer.prototype.writeInt64 = function(val) {
-	if (val > 9223372036854775807n)  throw new Error('Value is above signed 64-bit integer limit.');
-	if (val < -9223372036854775808n) throw new Error('Value is below signed 64-bit integer limit.');
+	readInt64() {
+		this.offset += 8;
+		const value = toBigInt(this.buffer.slice(this.offset - 8, this.offset));
 
-	this.writeUInt64(val);
-};
+		if (value > INT64_MAX) throw new Error('Value is above signed 64-bit integer limit.');
+		if (value < INT64_MIN) throw new Error('Value is below signed 64-bit integer limit.');
 
-BetterBuffer.prototype.readUInt64 = function() {
-	this.offset += 8;
-	val = BigIntBuffer.toBigIntLE(this.buffer.slice(this.offset - 8, this.offset));
+		return value;
+	}
 
-	if (val > 18446744073709551615n) throw new Error('Value is above unsigned 64-bit integer limit.');
-	if (val < -9223372036854775808n) throw new Error('Value is below unsigned 64-bit integer limit.');
+	writeInt64(value) {
+		if (value > INT64_MAX) throw new Error('Value is above signed 64-bit integer limit.');
+		if (value < INT64_MIN) throw new Error('Value is below signed 64-bit integer limit.');
 
-	return val;
-};
+		this.length += 8;
+		this.buffer = Buffer.concat([this.buffer, toBuffer(value, 8)], this.length);
+	}
 
-BetterBuffer.prototype.writeUInt64 = function(val) {
-	if (val > 18446744073709551615n) throw new Error('Value is above unsigned 64-bit integer limit.');
-	if (val < -9223372036854775808n) throw new Error('Value is below unsigned 64-bit integer limit.');
+	readUInt64() {
+		this.offset += 8;
+		const value = toBigInt(this.buffer.slice(this.offset - 8, this.offset));
 
-	this.buffer = Buffer.concat([this.buffer, BigIntBuffer.toBufferLE(val, 8)], this.length + 8);
-	this.length += 8;
-};
+		if (value > UINT64_MAX) throw new Error('Value is above unsigned 64-bit integer limit.');
+		if (value < UINT64_MIN) throw new Error('Value is below unsigned 64-bit integer limit.');
+
+		return value;
+	}
+
+	writeUInt64(value) {
+		if (value > UINT64_MAX) throw new Error('Value is above unsigned 64-bit integer limit.');
+		if (value < UINT64_MIN) throw new Error('Value is below unsigned 64-bit integer limit.');
+
+		this.length += 8;
+		this.buffer = Buffer.concat([this.buffer, toBuffer(value, 8)], this.length);
+	}
+}
 
 module.exports = BetterBuffer;
